@@ -83,6 +83,7 @@ import copy #copy np array
 import scipy.constants as sc
 from scipy import optimize  # to compare
 import matplotlib.animation as animation
+import csv
 
 ###############################
 '''VISUALIZATION FUNCTIONS'''
@@ -548,19 +549,20 @@ def main(problemNodes, randomFactor, temp, tempDecrease, visuals):
         #changeChances()
 
         #Save some information for graph at end
-        if iteration % 10 == 0:
-            costArray.append(currCost)
-            tempArray.append(temp)
-            bestCostArray.append(bestCost)
-            aP = acceptance_probability(candidateCost, currCost, temp)
+        #if iteration % 10 == 0:
+            #costArray.append(currCost)
+            #tempArray.append(temp)
+            #bestCostArray.append(bestCost)
+            #aP = acceptance_probability(candidateCost, currCost, temp)
             #aP = acceptance_probability2(iteration)
-            probArray.append(aP)
+            #probArray.append(aP)
 
-        if iteration % 10000 == 0:
-            print("Iteration : " + str(iteration) + " | bestCost = " + str(bestCost) + " | currCost=" + str(currCost) + "| temp=" + str(temp) + " | prob="+ str(acceptance_probability(candidateCost, currCost, temp) ))
-            print("candidateCost = " + str(candidateCost))
-            print(currSolution)
-            print(bestSolution)
+
+        #if iteration % 10000 == 0:
+           # print("Iteration : " + str(iteration) + " | bestCost = " + str(bestCost) + " | currCost=" + str(currCost) + "| temp=" + str(temp) + " | prob="+ str(acceptance_probability(candidateCost, currCost, temp) ))
+           # print("candidateCost = " + str(candidateCost))
+           # print(currSolution)
+           # print(bestSolution)
             #visualise_solution_2d(depotNode,currSolution, problemNodes)
             #plt.plot(costArray)
             #plt.draw()
@@ -599,47 +601,59 @@ def main(problemNodes, randomFactor, temp, tempDecrease, visuals):
         plt.title('prob array',fontsize=10)
         plt.show()
     return currCost
-def testOne():
-    temp =  25000.0
-    tempDecrease = 0.1
+def testTempDecrease():
+    temp =  10000
+    tempDecreaseArray = [0.00001,0.00002,0.00003,0.00003,0.00004, 0.00005]
     visuals = False
-    problemNodes = np.array(stripDatFiles("R101_0.5.dat"))
-    #randomFactors = [1,5,10,15,20,25,30,35,40]
-    randomFactors = [1,2,3,4,5]
-    numberOfBatches = 5
+    problemNodesArray = [np.array(stripDatFiles("ExperimentalData/datset1.dat")) , np.array(stripDatFiles("ExperimentalData/datset2.dat")), np.array(stripDatFiles("ExperimentalData/datset3.dat"))]
+    randomFactor = 10
+    numberOfBatches = 10
     results = []
-    for randomFactor in randomFactors:
-        subresults = [randomFactor]
-        for batch in range(numberOfBatches):
-            subresults.append(main(problemNodes, randomFactor, temp, tempDecrease, visuals))
-            print("Results for "+ str(randomFactor)+ " batch[" + str(batch)+"]")
-        print("All results for "+ str(randomFactor))
-        print(subresults)
-        results.append(subresults)
-    print("Hooray end!")
-    print(results)
+    subresults = []
+    with open('resultsTestTempDecrease.csv', mode='w') as result_file:
+        result_writer = csv.writer(result_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for tempDecrease in  tempDecreaseArray:
+            for problemNodes in problemNodesArray:
+                subresults = [tempDecrease, problemNodes.size()]
+                for batch in range(numberOfBatches):
+                    subresults.append(main(problemNodes, randomFactor, temp, tempDecrease, visuals))
+                    print("Test for tempDecrease" + str(tempDecrease) + " dataset " +str(problemNodes.size())+ " batch[" + str(batch) +"]")
+                result_writer.writerow(subresults)
+                results.append(subresults)
+        print("Hooray end!")
+        print(results)
 
 def testTwo():
     temp =  10000
     #tempDecreaseArray = [0.00001,0.00002,0.00003,0.00004,0.00005,0.00006,0.00007,0.00008,0.00009,0.0001]
-    tempDecreaseArray = [0.00003]
-    visuals = True
+    tempDecreaseArray = [0.00003, 0.00004]
+    visuals = False
     problemNodes = np.array(stripDatFiles("R101_0.5.dat"))
     #randomFactors = [1,5,10,15,20,25,30,35,40]
     randomFactor = 10
-    numberOfBatches = 1
+    numberOfBatches = 2
     results = []
-    for tempDecrease in tempDecreaseArray:
-        subresults = [randomFactor]
-        for batch in range(numberOfBatches):
-            subresults.append(main(problemNodes, randomFactor, temp, tempDecrease, visuals))
-            print("Results for "+ str(randomFactor)+ " batch[" + str(batch)+"]")
-        print("All results for "+ str(randomFactor))
-        print(subresults)
-        results.append(subresults)
-    print("Hooray end!")
-    print(results) 
+    
+    
+    with open('results.csv', mode='w') as result_file:
+        result_writer = csv.writer(result_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        for tempDecrease in tempDecreaseArray:
+            subresults = [randomFactor]
+            for batch in range(numberOfBatches):
+                subresults.append(main(problemNodes, randomFactor, temp, tempDecrease, visuals))
+                print("Results for "+ str(randomFactor)+ " batch[" + str(batch)+"]")
+            print("All results for "+ str(randomFactor))
+            print(subresults)
+            subresults.insert(0, 10)
+            subresults.insert(0, tempDecrease)
+            results.append(subresults)
+            result_writer.writerow(subresults)
+        print("Hooray end!")
+        print(results) 
 #testOne()
-testTwo()
+testTempDecrease()
+
+
+
 
 
